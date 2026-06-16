@@ -69,7 +69,7 @@ export function readBody<T = any>(req: VercelRequest): T {
  * o termina la request con 401.
  */
 export async function requireAuth(req: VercelRequest, res: VercelResponse): Promise<JwtPayload | null> {
-  const { extractToken, verifyToken } = await import('./auth');
+  const { extractToken, verifyToken } = await import('./auth.js');
   const token = extractToken(req);
   if (!token) {
     error(res, 401, 'Falta token de autenticación');

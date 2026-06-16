@@ -4,8 +4,8 @@
  * DELETE /api/sections/[id]   → eliminar (admin)
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSql } from '../_lib/db';
-import { methods, readBody, json, error, requireAuth } from '../_lib/middleware';
+import { getSql } from '../_lib/db.js';
+import { methods, readBody, json, error, requireAuth } from '../_lib/middleware.js';
 
 export default methods(['GET', 'PUT', 'DELETE'], async (req: VercelRequest, res: VercelResponse) => {
   const sql = getSql();
