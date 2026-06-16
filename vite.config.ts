@@ -16,6 +16,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@api": path.resolve(__dirname, "./api"),
     },
   },
   // Importante para React Router en Vercel: forzar rutas relativas.

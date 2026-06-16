@@ -15,6 +15,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@api/*": [
+        "./api/*"
       ]
     },
     /* Bundler mode */
@@ -30,7 +33,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": false,
-    "noUncheckedIndexedAccess": false,
     "noImplicitReturns": false,
     "noImplicitThis": false,
     "noPropertyAccessFromIndexSignature": false,
