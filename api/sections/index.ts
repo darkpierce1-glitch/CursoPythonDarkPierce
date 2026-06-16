@@ -7,8 +7,8 @@
  *   - includeUnpublished=true  → solo admin
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSql } from '@api/_lib/db.js';
-import { methods, readBody, json, error, requireAuth, slugify } from '@api/_lib/middleware.js';
+import { getSql } from '../_lib/db.js';
+import { methods, readBody, json, error, requireAuth, slugify } from '../_lib/middleware.js';
 
 interface Section {
   id: number;
