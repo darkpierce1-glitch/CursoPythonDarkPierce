@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "corepack enable pnpm && pnpm install && pnpm run build",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
@@ -11,5 +11,6 @@
     "api/**/*.ts": {
       "maxDuration": 10
     }
-  }
+  },
+  "installCommand": "corepack enable pnpm && pnpm install"
 }
