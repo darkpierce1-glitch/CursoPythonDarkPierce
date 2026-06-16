@@ -5,6 +5,7 @@
  * Respuesta: { token, user: { id, email, role } }
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import '@neondatabase/serverless';
 import { getSql } from './_lib/db.js';
 import { verifyPassword, signToken } from './_lib/auth.js';
 import { methods, readBody, json, error } from './_lib/middleware.js';

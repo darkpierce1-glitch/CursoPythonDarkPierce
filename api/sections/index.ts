@@ -7,6 +7,7 @@
  *   - includeUnpublished=true  → solo admin
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import '@neondatabase/serverless';
 import { getSql } from '../_lib/db.js';
 import { methods, readBody, json, error, requireAuth, slugify } from '../_lib/middleware.js';
 
