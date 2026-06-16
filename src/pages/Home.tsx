@@ -187,9 +187,9 @@ const CourseExplorer = ({
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[320px_minmax(0,1fr)] gap-8 items-start">
-          <aside className="lg:sticky lg:top-24 rounded-2xl border border-gray-800 bg-gray-950/80 p-3 max-h-[calc(100vh-7rem)] overflow-y-auto">
-            <div className="space-y-2">
+        <div className="space-y-8">
+          <div className="rounded-2xl border border-gray-800 bg-gray-950/80 p-3">
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
               {sections.map((section, index) => {
                 const isActive = section.slug === active.slug;
                 return (
@@ -220,7 +220,7 @@ const CourseExplorer = ({
                 );
               })}
             </div>
-          </aside>
+          </div>
 
           <div className="min-w-0 rounded-2xl border border-gray-800 bg-black/40 overflow-hidden">
             <SectionBlock section={active} compact />

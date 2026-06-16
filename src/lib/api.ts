@@ -109,12 +109,12 @@ export const api = {
       body: JSON.stringify(data),
     }, token),
   updateSection: (id: number, data: Partial<SectionInput>, token: string) =>
-    request<{ ok: true }>(`/sections/${id}`, {
+    request<{ ok: true }>(`/sections?id=${encodeURIComponent(id)}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }, token),
   deleteSection: (id: number, token: string) =>
-    request<{ ok: true }>(`/sections/${id}`, { method: 'DELETE' }, token),
+    request<{ ok: true }>(`/sections?id=${encodeURIComponent(id)}`, { method: 'DELETE' }, token),
 };
 
 export { ApiError };
