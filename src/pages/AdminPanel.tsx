@@ -89,7 +89,7 @@ export default function AdminPanel() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getSections(true);
+      const data = await api.getSections(true, token);
       setSections(data);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Error al cargar');

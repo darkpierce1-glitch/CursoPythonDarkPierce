@@ -98,9 +98,9 @@ export const api = {
     ),
 
   // Sections
-  getSections: (includeUnpublished = false) => {
+  getSections: (includeUnpublished = false, token?: string | null) => {
     const q = includeUnpublished ? '?includeUnpublished=true' : '';
-    return request<Section[]>(`/sections${q}`);
+    return request<Section[]>(`/sections${q}`, {}, token);
   },
   getSection: (id: number) => request<Section>(`/sections/${id}`),
   createSection: (data: SectionInput, token: string) =>

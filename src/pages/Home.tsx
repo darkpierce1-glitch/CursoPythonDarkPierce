@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Code, Book, Play, CheckCircle, Terminal, Coffee, Users, Sparkles,
-  Heart, ArrowUp, Copy, Check, Menu, X, FileCode, Cog, FunctionSquare,
+  Heart, Copy, Check, Menu, X, FileCode, Cog, FunctionSquare,
   Database, Repeat, GitBranch, Calculator, Box, Package, ShieldAlert,
   Download, ListTree, Infinity, GitCompare, Hash, Lock, Zap, List,
   GitFork, Layers, FileText, type LucideIcon,
@@ -108,17 +108,17 @@ const InteractiveExample = ({ title, description, code, result }: { title: strin
   );
 };
 
-const SectionBlock = ({ section }: { section: Section }) => {
+const SectionBlock = ({ section, compact = false }: { section: Section; compact?: boolean }) => {
   return (
-    <section id={section.slug} className="relative py-24 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+    <section id={section.slug} className={compact ? 'relative p-5 md:p-8' : 'relative py-24 px-6'}>
+      <div className={compact ? 'mx-auto' : 'max-w-7xl mx-auto'}>
+        <div className={compact ? 'text-left mb-8' : 'text-center mb-16'}>
           {section.lessonLabel && (
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 text-purple-400 text-sm font-medium mb-4">
               {section.lessonLabel}
             </div>
           )}
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className={`${compact ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl'} font-bold mb-6`}>
             <span className={`bg-gradient-to-r ${section.gradient || 'from-purple-400 to-pink-400'} bg-clip-text text-transparent`}>
               {section.title}
             </span>
@@ -127,12 +127,12 @@ const SectionBlock = ({ section }: { section: Section }) => {
             <p className="text-gray-300 text-xl mb-2">{section.subtitle}</p>
           )}
           {section.description && (
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">{section.description}</p>
+            <p className={`text-gray-400 text-lg max-w-2xl ${compact ? '' : 'mx-auto'}`}>{section.description}</p>
           )}
         </div>
 
         {section.theory.length > 0 && (
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className={`grid ${compact ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6 mb-12`}>
             {section.theory.map((t, i) => (
               <TheoryCard key={t.id || i} title={t.title} content={t.content} iconName={t.icon} />
             ))}
@@ -157,12 +157,87 @@ const SectionBlock = ({ section }: { section: Section }) => {
   );
 };
 
+const CourseExplorer = ({
+  sections,
+  activeSlug,
+  onSelect,
+}: {
+  sections: Section[];
+  activeSlug: string | null;
+  onSelect: (slug: string) => void;
+}) => {
+  const active = sections.find(s => s.slug === activeSlug) || sections[0];
+  if (!active) return null;
+
+  const select = (slug: string) => {
+    onSelect(slug);
+    document.getElementById('curso')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <section id="curso" className="relative py-20 px-6 border-y border-gray-900">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <p className="text-purple-400 text-sm font-semibold uppercase tracking-wider mb-2">Lecciones</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white">Ruta de aprendizaje</h2>
+          </div>
+          <p className="text-gray-400 max-w-xl">
+            Elige una sección para ver su teoría y ejemplos. El contenido se mantiene enfocado en una lección a la vez.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-[320px_minmax(0,1fr)] gap-8 items-start">
+          <aside className="lg:sticky lg:top-24 rounded-2xl border border-gray-800 bg-gray-950/80 p-3 max-h-[calc(100vh-7rem)] overflow-y-auto">
+            <div className="space-y-2">
+              {sections.map((section, index) => {
+                const isActive = section.slug === active.slug;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => select(section.slug)}
+                    className={`w-full text-left rounded-xl p-3 transition border ${
+                      isActive
+                        ? 'bg-purple-500/15 border-purple-500/50 text-white'
+                        : 'bg-transparent border-transparent text-gray-400 hover:text-white hover:bg-gray-900'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
+                        isActive ? 'bg-purple-500 text-white' : 'bg-gray-900 text-gray-500'
+                      }`}>
+                        {isActive ? <CheckCircle className="w-4 h-4" /> : index + 1}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{section.title}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {section.lessonLabel || `Lección ${index + 1}`} · {section.theory.length} teoría · {section.examples.length} ejemplos
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          <div className="min-w-0 rounded-2xl border border-gray-800 bg-black/40 overflow-hidden">
+            <SectionBlock section={active} compact />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 export default function Home() {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeSlug, setActiveSlug] = useState<string | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -175,7 +250,14 @@ export default function Home() {
     (async () => {
       try {
         const data = await api.getSections();
-        if (!cancelled) setSections(data);
+        if (!cancelled) {
+          setSections(data);
+          setActiveSlug(current =>
+            current && data.some(section => section.slug === current)
+              ? current
+              : data[0]?.slug || null
+          );
+        }
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof ApiError ? e.message : 'No se pudo cargar el curso');
@@ -217,15 +299,7 @@ export default function Home() {
             </a>
             <div className="hidden md:flex items-center gap-8">
               <a href="#inicio" className="text-gray-400 hover:text-white text-sm font-medium">Inicio</a>
-              {sections.slice(0, 5).map(s => (
-                <a
-                  key={s.id}
-                  href={`#${s.slug}`}
-                  className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
-                >
-                  {s.title.split(' ').slice(0, 2).join(' ')}
-                </a>
-              ))}
+              <a href="#curso" className="text-gray-400 hover:text-white transition-colors text-sm font-medium">Lecciones</a>
               <Link
                 to="/admin/login"
                 className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium hover:opacity-90"
@@ -240,11 +314,7 @@ export default function Home() {
           {isOpen && (
             <div className="md:hidden mt-4 pb-4 border-t border-gray-800 pt-4">
               <a href="#inicio" className="block py-2 text-gray-400 hover:text-white">Inicio</a>
-              {sections.map(s => (
-                <a key={s.id} href={`#${s.slug}`} onClick={() => setIsOpen(false)} className="block py-2 text-gray-400 hover:text-white">
-                  {s.title}
-                </a>
-              ))}
+              <a href="#curso" onClick={() => setIsOpen(false)} className="block py-2 text-gray-400 hover:text-white">Lecciones</a>
               <Link to="/admin/login" className="block py-2 text-purple-400 hover:text-purple-300">Admin</Link>
             </div>
           )}
@@ -300,12 +370,12 @@ export default function Home() {
           </div>
           {sections.length > 0 && (
             <button
-              onClick={() => scrollToSection(sections[0].slug)}
+              onClick={() => scrollToSection('curso')}
               className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-semibold text-white overflow-hidden animate-slideUp"
               style={{ animationDelay: '0.8s' }}
             >
               <span className="relative z-10 flex items-center gap-2">
-                Comenzar a Aprender
+                Ver lecciones
               </span>
             </button>
           )}
@@ -344,11 +414,9 @@ export default function Home() {
         </div>
       )}
 
-      {sections.map((s, idx) => (
-        <div key={s.id} className={idx % 2 === 1 ? 'bg-gradient-to-b from-transparent via-purple-900/10 to-transparent' : ''}>
-          <SectionBlock section={s} />
-        </div>
-      ))}
+      {!loading && !error && sections.length > 0 && (
+        <CourseExplorer sections={sections} activeSlug={activeSlug} onSelect={setActiveSlug} />
+      )}
 
       <footer className="relative py-12 px-6 border-t border-gray-800">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
