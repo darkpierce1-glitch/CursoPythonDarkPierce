@@ -5,9 +5,9 @@
  * Respuesta: { token, user: { id, email, role } }
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSql } from './_lib/db.js';
-import { verifyPassword, signToken } from './_lib/auth.js';
-import { methods, readBody, json, error } from './_lib/middleware.js';
+import { getSql } from './_lib/db';
+import { verifyPassword, signToken } from './_lib/auth';
+import { methods, readBody, json, error } from './_lib/middleware';
 
 export default methods(['POST'], async (req: VercelRequest, res: VercelResponse) => {
   const { email, password } = readBody<{ email?: string; password?: string }>(req);

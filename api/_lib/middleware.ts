@@ -2,7 +2,7 @@
  * Helpers compartidos para endpoints serverless de Vercel.
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { extractToken, verifyToken, type JwtPayload } from './auth.js';
+import { extractToken, verifyToken, type JwtPayload } from './auth';
 
 export type Handler = (req: VercelRequest, res: VercelResponse) => Promise<void> | void;
 
