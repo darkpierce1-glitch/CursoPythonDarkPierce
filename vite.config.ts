@@ -18,4 +18,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Importante para React Router en Vercel: forzar rutas relativas.
+  base: './',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
 })
