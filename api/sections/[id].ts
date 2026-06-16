@@ -58,7 +58,7 @@ export default methods(['GET', 'PUT', 'DELETE'], async (req: VercelRequest, res:
   }
 
   if (req.method === 'PUT') {
-    const auth = requireAuth(req, res);
+    const auth = await requireAuth(req, res);
     if (!auth) return;
 
     const body = readBody<any>(req);
@@ -129,7 +129,7 @@ export default methods(['GET', 'PUT', 'DELETE'], async (req: VercelRequest, res:
   }
 
   if (req.method === 'DELETE') {
-    const auth = requireAuth(req, res);
+    const auth = await requireAuth(req, res);
     if (!auth) return;
 
     await sql('DELETE FROM sections WHERE id = $1', [id]);

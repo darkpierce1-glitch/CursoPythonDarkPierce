@@ -29,7 +29,7 @@ export default methods(['GET', 'POST'], async (req: VercelRequest, res: VercelRe
   if (req.method === 'GET') {
     const includeUnpublished = req.query.includeUnpublished === 'true';
     if (includeUnpublished) {
-      const auth = requireAuth(req, res);
+      const auth = await requireAuth(req, res);
       if (!auth) return;
     }
 
@@ -94,7 +94,7 @@ export default methods(['GET', 'POST'], async (req: VercelRequest, res: VercelRe
   }
 
   // POST: crear sección (admin)
-  const auth = requireAuth(req, res);
+  const auth = await requireAuth(req, res);
   if (!auth) return;
 
   const body = readBody<Partial<{

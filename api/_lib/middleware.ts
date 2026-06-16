@@ -2,9 +2,14 @@
  * Helpers compartidos para endpoints serverless de Vercel.
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { extractToken, verifyToken, type JwtPayload } from './auth';
 
 export type Handler = (req: VercelRequest, res: VercelResponse) => Promise<void> | void;
+
+export interface JwtPayload {
+  userId: number;
+  email: string;
+  role: string;
+}
 
 export function json(res: VercelResponse, status: number, body: unknown) {
   res.status(status).json(body);
@@ -63,7 +68,8 @@ export function readBody<T = any>(req: VercelRequest): T {
  * Exige un JWT válido en el header Authorization. Devuelve el payload
  * o termina la request con 401.
  */
-export function requireAuth(req: VercelRequest, res: VercelResponse): JwtPayload | null {
+export async function requireAuth(req: VercelRequest, res: VercelResponse): Promise<JwtPayload | null> {
+  const { extractToken, verifyToken } = await import('./auth');
   const token = extractToken(req);
   if (!token) {
     error(res, 401, 'Falta token de autenticación');
