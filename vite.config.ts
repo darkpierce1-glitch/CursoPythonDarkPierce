@@ -19,8 +19,16 @@ export default defineConfig({
       "@api": path.resolve(__dirname, "./api"),
     },
   },
-  // Importante para React Router en Vercel: forzar rutas relativas.
   base: './',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,

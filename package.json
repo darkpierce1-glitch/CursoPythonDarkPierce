@@ -8,6 +8,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "vercel dev",
+    "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:api\"",
     "build": "node -e \"const fs=require('fs'); const path='node_modules/.vite-temp'; if(fs.existsSync(path)) fs.rmSync(path,{recursive:true,force:true});\" && tsc -b && vite build",
     "build:prod": "node -e \"const fs=require('fs'); const path='node_modules/.vite-temp'; if(fs.existsSync(path)) fs.rmSync(path,{recursive:true,force:true});\" && tsc -b && BUILD_MODE=prod vite build",
     "lint": "eslint .",
@@ -72,6 +74,7 @@
   "devDependencies": {
     "@eslint/js": "^9.15.0",
     "@types/node": "^22.10.7",
+    "concurrently": "^8.2.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-router-dom": "^5",
