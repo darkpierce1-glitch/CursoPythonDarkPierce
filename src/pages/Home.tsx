@@ -1,7 +1,7 @@
 /**
  * Página principal: muestra todas las secciones del curso cargadas desde la API.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Code, Book, Play, CheckCircle, Terminal, Coffee, Users, Sparkles,
@@ -17,6 +17,250 @@ const ICONS: Record<string, LucideIcon> = {
   GitBranch, ListTree, Repeat, Infinity, Cog, FunctionSquare, Database,
   List, Lock, Hash, Box, GitFork, Package, Layers, FileText, ShieldAlert,
   Code, Play, Users, Coffee, Heart,
+};
+
+const safeHref = (href: string) => {
+  const trimmed = href.trim();
+  if (/^(https?:\/\/|mailto:|#|\/)/i.test(trimmed)) return trimmed;
+  return '#';
+};
+
+const safeMediaSrc = (src: string) => {
+  const trimmed = src.trim();
+  if (/^(https?:\/\/|\/)/i.test(trimmed)) return trimmed;
+  return null;
+};
+
+const getYouTubeEmbed = (src: string) => {
+  try {
+    const url = new URL(src);
+    const host = url.hostname.replace(/^www\./, '');
+    const id = host === 'youtu.be'
+      ? url.pathname.slice(1)
+      : host === 'youtube.com'
+        ? url.searchParams.get('v')
+        : null;
+
+    if (id && /^[A-Za-z0-9_-]{6,}$/.test(id)) {
+      return `https://www.youtube.com/embed/${id}`;
+    }
+  } catch {
+    /* ignore invalid URLs */
+  }
+  return null;
+};
+
+const isDirectVideo = (src: string) => /\.(mp4|webm|ogg)([?#].*)?$/i.test(src);
+
+const renderInlineMarkdown = (text: string, keyPrefix: string): ReactNode[] => {
+  const nodes: ReactNode[] = [];
+  const pattern = /(\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|`([^`]+)`|\*([^*]+)\*)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+
+    const key = `${keyPrefix}-${match.index}`;
+    if (match[2] && match[3]) {
+      const href = safeHref(match[3]);
+      nodes.push(
+        <a
+          key={key}
+          href={href}
+          target={href.startsWith('http') ? '_blank' : undefined}
+          rel={href.startsWith('http') ? 'noreferrer' : undefined}
+          className="text-purple-300 underline decoration-purple-400/50 underline-offset-4 hover:text-purple-200"
+        >
+          {renderInlineMarkdown(match[2], `${key}-link`)}
+        </a>
+      );
+    } else if (match[4]) {
+      nodes.push(<strong key={key} className="font-semibold text-gray-100">{renderInlineMarkdown(match[4], `${key}-bold`)}</strong>);
+    } else if (match[5]) {
+      nodes.push(<code key={key} className="rounded bg-black/40 px-1.5 py-0.5 font-mono text-[0.92em] text-green-300">{match[5]}</code>);
+    } else if (match[6]) {
+      nodes.push(<em key={key} className="text-gray-200">{renderInlineMarkdown(match[6], `${key}-italic`)}</em>);
+    }
+
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+  return nodes;
+};
+
+const MarkdownText = ({
+  content,
+  className = 'text-gray-400 leading-relaxed',
+}: {
+  content?: string | null;
+  className?: string;
+}) => {
+  if (!content) return null;
+
+  const lines = content.split(/\r?\n/);
+  const blocks: ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      i += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith('```')) {
+      const codeLines: string[] = [];
+      i += 1;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i += 1;
+      }
+      i += 1;
+      blocks.push(
+        <pre key={`code-${i}`} className="my-4 overflow-x-auto rounded-lg border border-gray-800 bg-gray-950 p-4 text-sm text-gray-200">
+          <code>{codeLines.join('\n')}</code>
+        </pre>
+      );
+      continue;
+    }
+
+    const image = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (image) {
+      const src = safeMediaSrc(image[2]);
+      if (src) {
+        blocks.push(
+          <figure key={`image-${i}`} className="my-5 overflow-hidden rounded-xl border border-gray-800 bg-gray-950">
+            <img
+              src={src}
+              alt={image[1] || ''}
+              loading="lazy"
+              decoding="async"
+              className="h-auto w-full object-cover"
+            />
+            {image[1] && (
+              <figcaption className="border-t border-gray-800 px-4 py-2 text-xs text-gray-500">
+                {image[1]}
+              </figcaption>
+            )}
+          </figure>
+        );
+      }
+      i += 1;
+      continue;
+    }
+
+    const video = trimmed.match(/^@\[video(?::\s*([^\]]+))?\]\(([^)]+)\)$/i);
+    if (video) {
+      const title = video[1] || 'Video de la lección';
+      const src = safeMediaSrc(video[2]);
+      const youtubeEmbed = src ? getYouTubeEmbed(src) : null;
+
+      if (youtubeEmbed) {
+        blocks.push(
+          <div key={`video-${i}`} className="my-5 overflow-hidden rounded-xl border border-gray-800 bg-gray-950">
+            <div className="aspect-video">
+              <iframe
+                src={youtubeEmbed}
+                title={title}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="h-full w-full"
+              />
+            </div>
+          </div>
+        );
+      } else if (src && isDirectVideo(src)) {
+        blocks.push(
+          <video
+            key={`video-${i}`}
+            src={src}
+            controls
+            preload="metadata"
+            className="my-5 w-full rounded-xl border border-gray-800 bg-gray-950"
+          />
+        );
+      } else {
+        blocks.push(
+          <p key={`video-link-${i}`} className="my-2">
+            {renderInlineMarkdown(`[${title}](${video[2]})`, `video-link-${i}`)}
+          </p>
+        );
+      }
+      i += 1;
+      continue;
+    }
+
+    const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      const Tag = heading[1].length === 1 ? 'h3' : heading[1].length === 2 ? 'h4' : 'h5';
+      blocks.push(
+        <Tag key={`heading-${i}`} className="mt-5 mb-2 font-bold text-white">
+          {renderInlineMarkdown(heading[2], `heading-${i}`)}
+        </Tag>
+      );
+      i += 1;
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(trimmed)) {
+      const items: string[] = [];
+      while (i < lines.length && /^[-*]\s+/.test(lines[i].trim())) {
+        items.push(lines[i].trim().replace(/^[-*]\s+/, ''));
+        i += 1;
+      }
+      blocks.push(
+        <ul key={`ul-${i}`} className="my-3 list-disc space-y-1 pl-5">
+          {items.map((item, idx) => <li key={idx}>{renderInlineMarkdown(item, `ul-${i}-${idx}`)}</li>)}
+        </ul>
+      );
+      continue;
+    }
+
+    if (/^\d+\.\s+/.test(trimmed)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
+        items.push(lines[i].trim().replace(/^\d+\.\s+/, ''));
+        i += 1;
+      }
+      blocks.push(
+        <ol key={`ol-${i}`} className="my-3 list-decimal space-y-1 pl-5">
+          {items.map((item, idx) => <li key={idx}>{renderInlineMarkdown(item, `ol-${i}-${idx}`)}</li>)}
+        </ol>
+      );
+      continue;
+    }
+
+    const paragraphLines = [trimmed];
+    i += 1;
+    while (
+      i < lines.length &&
+      lines[i].trim() &&
+      !lines[i].trim().startsWith('```') &&
+      !/^(#{1,3})\s+/.test(lines[i].trim()) &&
+      !/^[-*]\s+/.test(lines[i].trim()) &&
+      !/^\d+\.\s+/.test(lines[i].trim())
+    ) {
+      paragraphLines.push(lines[i].trim());
+      i += 1;
+    }
+
+    blocks.push(
+      <p key={`p-${i}`} className="my-2">
+        {renderInlineMarkdown(paragraphLines.join(' '), `p-${i}`)}
+      </p>
+    );
+  }
+
+  return <div className={className}>{blocks}</div>;
 };
 
 const FloatingShapes = () => {
@@ -76,7 +320,7 @@ const TheoryCard = ({ title, content, iconName }: { title: string; content: stri
         </div>
         <h4 className="text-lg font-bold text-white">{title}</h4>
       </div>
-      <p className="text-gray-400 leading-relaxed whitespace-pre-line">{content}</p>
+      <MarkdownText content={content} />
     </div>
   );
 };
@@ -87,7 +331,7 @@ const InteractiveExample = ({ title, description, code, result }: { title: strin
     <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl overflow-hidden border border-gray-700">
       <div className="p-6 border-b border-gray-700">
         <h4 className="text-xl font-bold text-white mb-2">{title}</h4>
-        {description && <p className="text-gray-400 text-sm">{description}</p>}
+        <MarkdownText content={description} className="text-gray-400 text-sm leading-relaxed" />
       </div>
       <div className="p-6">
         <CodeBlock code={code} />
@@ -100,7 +344,7 @@ const InteractiveExample = ({ title, description, code, result }: { title: strin
         </button>
         {showResult && (
           <div className="mt-4 p-4 rounded-lg bg-black/50 border border-green-500/30">
-            <p className="text-green-400 font-mono text-sm whitespace-pre-line">{result}</p>
+            <MarkdownText content={result} className="text-green-400 text-sm leading-relaxed" />
           </div>
         )}
       </div>
@@ -127,7 +371,7 @@ const SectionBlock = ({ section, compact = false }: { section: Section; compact?
             <p className="text-gray-300 text-xl mb-2">{section.subtitle}</p>
           )}
           {section.description && (
-            <p className={`text-gray-400 text-lg max-w-2xl ${compact ? '' : 'mx-auto'}`}>{section.description}</p>
+            <MarkdownText content={section.description} className={`text-gray-400 text-lg leading-relaxed max-w-2xl ${compact ? '' : 'mx-auto'}`} />
           )}
         </div>
 
